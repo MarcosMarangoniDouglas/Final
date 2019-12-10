@@ -37,13 +37,11 @@ app.get('/', function(req, res) {
 });
 
 app.get('/fill_tables', async function (req, res) {
-    const tablesSql = fs.readFileSync('final.sql', 'utf8');
     const countries = fs.readFileSync('./Country.json', 'utf8');
     const countriesParsed = JSON.parse(countries);
     const africanCrisis = fs.readFileSync('./African_crisis.json',`utf8`);
     const africanCrisisParsed = JSON.parse(africanCrisis);
     try {
-        await connection.query(tablesSql)
         await countriesParsed.forEach(async function(country) {
             const [rows, columns] = 
             await connection.query("insert into country (code, name, continent, region, surface_area, indep_year, \

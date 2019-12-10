@@ -1,7 +1,4 @@
-drop database final;
-create database final;
-use final;
-CREATE TABLE Country (
+CREATE TABLE country (
     `code` VARCHAR(100) PRIMARY KEY,
     `name` VARCHAR(100),
     `continent` VARCHAR(100),
@@ -19,7 +16,7 @@ CREATE TABLE Country (
     `code2` VARCHAR(100)
 );
 
-CREATE TABLE AfricanCrise (
+CREATE TABLE africancrise (
     `case` INT(10),
     `cc3` VARCHAR(100),
     `country` VARCHAR(100),
@@ -34,5 +31,5 @@ CREATE TABLE AfricanCrise (
     `currency_crisis` INT(10),
     `inflation_crisis` INT(10),
     `banking_crisis` VARCHAR(100),
-    FOREIGN KEY (`cc3`) REFERENCES Country(`code`)
+    FOREIGN KEY (`cc3`) REFERENCES country(`code`)
 );
