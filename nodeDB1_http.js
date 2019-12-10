@@ -1,15 +1,25 @@
 /*
-REMEBER TO START THE SERVICES:
+1) npm install (or npm i). It will install all the dependencies
+2) mysql -u root -p to enter mysql console
+3) create the database final (or whatever you named it).
+4) Grant all previleges to root:
+Command.: GRANT ALL PRIVILEGES ON database_name.* TO 'root'@'%';
+5) Go to the final.sql and copy the contents into the mysql console
+
+REMEBER TO START THE MYSQL SERVICE:
 mysql:
 sudo service mysqld start
-http:
-sudo service httpd start
 */
 
+// Promise based mysql library
 let mysql = require('mysql2');
+// Library to read files
 let fs = require("fs");
-let express = require('express')
+// Express framework
+let express = require('express');
+// Parse the body into json.
 let bodyParser = require('body-parser');
+// Library to read csv files and parse them.
 let csv = require('csv');
 
 let app = express();
@@ -83,7 +93,7 @@ app.get('/countries', async function(req, res) {
     }
 });
 
-app.get('/african_crises', async function(req, res) {
+app.get('/african_crisis', async function(req, res) {
     try {
         const[rows,columns] = await connection.query("select * from africancrise;");
         res.send(rows);
