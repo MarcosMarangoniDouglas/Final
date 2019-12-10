@@ -1,3 +1,6 @@
+drop database final;
+create database final;
+use final;
 CREATE TABLE Country (
     `code` VARCHAR(100) PRIMARY KEY,
     `name` VARCHAR(100),

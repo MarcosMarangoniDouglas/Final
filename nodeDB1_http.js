@@ -1,3 +1,11 @@
+/*
+REMEBER TO START THE SERVICES:
+mysql:
+sudo service mysqld start
+http:
+sudo service httpd start
+*/
+
 let mysql = require('mysql2');
 let fs = require("fs");
 let express = require('express')
@@ -17,9 +25,9 @@ let server = app.listen(port, () => {
 
 let connectionPool = mysql.createPool({
         connectionLimit: 5,
-        host     : 'ec2-3-87-228-242.compute-1.amazonaws.com',
-        user     : 'myser',
-        password : 'pass123',
+        host     : 'localhost',
+        user     : 'root',
+        password : '',
         database : 'final'
     });
 const connection = connectionPool.promise();
@@ -28,13 +36,14 @@ app.get('/', function(req, res) {
     res.send("WORKING");
 });
 
-app.get('/seed', async function (req, res) {
-    console.log("SEED");
-    let countries = fs.readFileSync('./Country.json', 'utf8');
-    let countriesParsed = JSON.parse(countries);
-    let african = fs.readFileSync('./African_crisis.json',`utf8`);
-    let africanParsed = JSON.parse(african);
+app.get('/fill_tables', async function (req, res) {
+    const tablesSql = fs.readFileSync('final.sql', 'utf8');
+    const countries = fs.readFileSync('./Country.json', 'utf8');
+    const countriesParsed = JSON.parse(countries);
+    const africanCrisis = fs.readFileSync('./African_crisis.json',`utf8`);
+    const africanCrisisParsed = JSON.parse(africanCrisis);
     try {
+        await connection.query(tablesSql)
         await countriesParsed.forEach(async function(country) {
             const [rows, columns] = 
             await connection.query("insert into country (code, name, continent, region, surface_area, indep_year, \
@@ -46,27 +55,44 @@ app.get('/seed', async function (req, res) {
                  country.Capital, country.Code2]);
                  
         });
-        await africanParsed.forEach(async function(African_crisis){
+        await africanCrisisParsed.forEach(async function(africanCrise){
             const[rows,columns] = 
             await connection.query("insert into africancrise (`case`, cc3, country, `year`, \
                 systematic_crisis, exch_usd, domestic_debt_in_default, sovereign_external_debt_default, \
                 gdp_weighted_default, inflation_annual_cpi, independece, currency_crisis, inflation_crisis, \
-                banking_crisis) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?);", [African_crisis.case,African_crisis.cc3,
-                African_crisis.country,African_crisis.year,African_crisis.systemic_crisis,African_crisis.exch_usd,
-            African_crisis.domestic_debt_in_default,African_crisis.sovereign_external_debt_default,African_crisis.gdp_weighted_default,
-        African_crisis.inflation_annual_cpi,African_crisis.independence,African_crisis.currency_crises,
-    African_crisis.inflation_crises,African_crisis.banking_crisis]);
+                banking_crisis) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?);", 
+                [africanCrise.case,africanCrise.cc3,africanCrise.country,africanCrise.year,
+                africanCrise.systemic_crisis,africanCrise.exch_usd,africanCrise.domestic_debt_in_default,
+                africanCrise.sovereign_external_debt_default,africanCrise.gdp_weighted_default,
+                africanCrise.inflation_annual_cpi,africanCrise.independence,africanCrise.currency_crises,
+                africanCrise.inflation_crises,africanCrise.banking_crisis]);
         });
         res.send("Hello");
 
     } catch (error) {
-        console.log('[ERROR]', error.message);
+        console.error('[ERROR]', error.message);
+        res.status(500).send(error.message);
     }
 });
 
 app.get('/countries', async function(req, res) {
-    const[rows,columns] = await connection.query("select * from country;");
-    res.send(rows);
+    try {
+        const[rows,columns] = await connection.query("select * from country;");
+        res.send(rows);
+    } catch (error) {
+        console.error('[ERROR]', error.message);
+        res.status(500).send(error.message);
+    }
+});
+
+app.get('/african_crises', async function(req, res) {
+    try {
+        const[rows,columns] = await connection.query("select * from africancrise;");
+        res.send(rows);
+    } catch (error) {
+        console.log('[ERROR]', error.message);
+        res.status(500).send(error.message);
+    }
 });
 
 app.get('/countries/:code', async function(req, res) {
@@ -76,23 +102,6 @@ app.get('/countries/:code', async function(req, res) {
         const[rows,columns] = await connection.query("select * from africancrise where cc3 = ?;", [code]);
         res.send(rows);
     } catch (error) {
-        console.log('[ERROR]', error.message);
+        console.error('[ERROR]', error.message);
     }
 });
- 
-app.post('/', function (req, res) {
-    console.log("Got a GET request for the homepage");
-
-    let qString = "SELECT * from president where state='" + req.body.state + "'"   
-    connection.query(qString, function(err, rows, fields) {
-    if (!err) {
-        console.log("Displaying all the rows");
-        
-        res.send(JSON.stringify(rows));
-    }
-    else
-        console.log('Error while performing Query.');
-    });
-
-   
- })
